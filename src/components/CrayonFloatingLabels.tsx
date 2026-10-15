@@ -34,13 +34,7 @@ export const KNOWN_INTERACTION_LABELS: CrayonWorldLabelItem[] = [
     position: [0, 1.2, 4.2],
     actionWord: 'Open',
   },
-  // House Map Scene
-  {
-    id: 'house_workshop',
-    name: "Dad's Workshop",
-    position: [-1.6, 1.3, 7.5],
-    actionWord: 'Open',
-  },
+
   {
     id: 'house_basement',
     name: 'Basement Door',

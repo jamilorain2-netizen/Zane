@@ -51,7 +51,7 @@ interface ThreeCanvasProps {
   activeInspectModal: string | null;
   onCloseInspect: () => void;
   isCinematicPlaying: boolean;
-  onSkipCinematic: () => void;
+
   isDialogueActive?: boolean;
   isChoiceActive?: boolean;
   completedCutscenes: Record<string, boolean>;
@@ -109,7 +109,6 @@ function clampCameraToContinuousWorld(
   currentRoom: string,
   playerPos: THREE.Vector3,
   bedroomDoor: InteractiveDoor | null,
-  workshopDoor: InteractiveDoor | null,
   basementDoor: InteractiveDoor | null,
   restroomDoor: InteractiveDoor | null
 ): THREE.Vector3 {
@@ -135,7 +134,7 @@ function clampCameraToContinuousWorld(
       minZ = -3.7;
       minX = -3.7; maxX = 3.7;
     }
-    if (workshopDoor?.isOpen && playerPos.z >= 4.5 && playerPos.z <= 11.0) {
+    if (playerPos.z >= 4.5 && playerPos.z <= 11.0) {
       minX = -7.4;
     }
     if (basementDoor?.isOpen && playerPos.z >= 9.0 && playerPos.z <= 13.0) {
@@ -151,7 +150,7 @@ function clampCameraToContinuousWorld(
     }
   } else if (currentRoom === 'workshop') {
     minX = -7.4; maxX = -2.0; minZ = 5.0; maxZ = 10.2;
-    if (workshopDoor?.isOpen && playerPos.x > -3.2) {
+    if (playerPos.x > -3.2) {
       maxX = 1.3;
     }
   } else if (currentRoom === 'restroom') {
@@ -188,7 +187,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
   activeInspectModal,
   onCloseInspect,
   isCinematicPlaying,
-  onSkipCinematic,
+
   isDialogueActive = false,
   isChoiceActive = false,
   completedCutscenes,
@@ -337,7 +336,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
   const cinematicRef = useRef<CinematicController | null>(null);
 
   const bedroomDoorRef = useRef<InteractiveDoor | null>(null);
-  const workshopDoorRef = useRef<InteractiveDoor | null>(null);
   const basementDoorRef = useRef<InteractiveDoor | null>(null);
   const restroomDoorRef = useRef<InteractiveDoor | null>(null);
 
@@ -535,7 +533,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
     // 2. Door Groups (Pivot & Frame)
     const doors = [
       bedroomDoorRef.current,
-      workshopDoorRef.current,
       basementDoorRef.current,
       restroomDoorRef.current,
     ];
@@ -648,31 +645,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
   // Keep setWorldModeRef synced
   setWorldModeRef.current = setWorldMode;
 
-  // Skip handler for the Ending Cutscene (Only active when ?dev=1 is present)
-  const handleSkipBeerCutscene = useCallback(() => {
-    isBeerCutsceneActiveRef.current = false;
-    setIsBeerCutsceneActive(false);
-    beerCutscenePhaseRef.current = 'none';
-    setBeerCutscenePhase('none');
-    setEyelidProgress(0);
-    setSoftBlurVignette(false);
-    setLargeShakingSubtitle(null);
-    setChaseVignetteOpacity(0);
-    setHeavyAtmosphereVignette(0);
-    setHeavyAtmosphereDesat(0);
-    cameraShakeIntensityRef.current = 0;
 
-    soundEngine.stopAllAudio();
-    soundEngine.stopSlowBreathing();
-    soundEngine.stopHeavyBreathing();
-    soundEngine.stopMuffledAudio();
-
-    onSubtitleChangeRef.current?.('', '');
-
-    setShowEndCard(true);
-    setIsHardCutBlack(false);
-    isHardCutBlackRef.current = false;
-  }, []);
 
   // Reset Heavy Atmosphere visuals and Web Audio safely so Esc never leaves them stuck
   const resetBeerSceneAtmosphere = useCallback(() => {
@@ -1677,10 +1650,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
         cameraYaw.current = -Math.PI / 2;
         break;
       case 'workshop':
-        if (workshopDoorRef.current) {
-          workshopDoorRef.current.setLocked(false);
-          workshopDoorRef.current.open();
-        }
         playerPos.current.set(-5.0, 0, 7.5);
         playerRotation.current = 0;
         cameraYaw.current = 0;
@@ -1793,10 +1762,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
         basementDoorRef.current.setLocked(false);
         basementDoorRef.current.open();
       }
-      if (workshopDoorRef.current) {
-        workshopDoorRef.current.setLocked(false);
-        workshopDoorRef.current.open();
-      }
+
       houseSceneRef.current?.hallwayPanels.forEach((p) => {
         p.isAligned = true;
         p.currentAngle = 0;
@@ -1828,10 +1794,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
         basementSceneRef.current?.hideWrench();
         updated.quests.basement_wrench = 'completed';
         updated.quests.deliver_wrench = 'active';
-        if (workshopDoorRef.current) {
-          workshopDoorRef.current.setLocked(false);
-          workshopDoorRef.current.interactionNode.promptVerb = 'Open';
-        }
       } else {
         updated.quests.deliver_wrench = 'inactive';
       }
@@ -1982,7 +1944,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       );
 
       let nearestDoorStr = 'None';
-      const doors = [bedroomDoorRef.current, workshopDoorRef.current, basementDoorRef.current, restroomDoorRef.current].filter(Boolean) as InteractiveDoor[];
+      const doors = [bedroomDoorRef.current, basementDoorRef.current, restroomDoorRef.current].filter(Boolean) as InteractiveDoor[];
       let minDist = Infinity;
       let closestDoor: InteractiveDoor | null = null;
       for (const door of doors) {
@@ -2139,17 +2101,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       doorColor: 0xa16207,
     });
 
-    const workshopDoor = new InteractiveDoor({
-      id: 'house_workshop',
-      name: "Dad's Workshop",
-      position: new THREE.Vector3(-1.8, 0, 6.85),
-      rotationY: Math.PI / 2,
-      targetRoomId: 'workshop',
-      targetRoomGroup: workshop.group,
-      doorColor: 0xa16207,
-      isLocked: true,
-      lockedMessage: 'Dad is in the Workshop',
-    });
+
 
     const basementDoor = new InteractiveDoor({
       id: 'house_basement',
@@ -2174,7 +2126,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
     });
 
     bedroomDoorRef.current = bedroomDoor;
-    workshopDoorRef.current = workshopDoor;
     basementDoorRef.current = basementDoor;
     restroomDoorRef.current = restroomDoor;
 
@@ -2186,13 +2137,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       houseMap.hideKey();
     } else {
       basementDoor.interactionNode.promptVerb = 'Check';
-    }
-
-    if (storyStateRef.current.hasWrench || storyStateRef.current.quests.deliver_wrench === 'active' || storyStateRef.current.quests.deliver_wrench === 'completed') {
-      workshopDoor.setLocked(false);
-      workshopDoor.interactionNode.promptVerb = 'Open';
-      workshopDoor.interactionNode.name = "Dad's Workshop";
-      workshopDoor.interactionNode.description = "Press E to open Dad's Workshop door.";
     }
 
     if (storyStateRef.current.hasPower && !storyStateRef.current.hasWrench) {
@@ -2271,8 +2215,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
     scene.add(bedroomDoor.pivotGroup);
     scene.add(bedroomDoor.frameGroup);
-    scene.add(workshopDoor.pivotGroup);
-    scene.add(workshopDoor.frameGroup);
     scene.add(basementDoor.pivotGroup);
     scene.add(basementDoor.frameGroup);
     scene.add(restroomDoor.pivotGroup);
@@ -2646,22 +2588,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
       if (dadCharacterRef.current) {
         dadCharacterRef.current.doorCheckCallback = (doorCenter) => {
-          if (
-            workshopDoorRef.current &&
-            Math.abs(doorCenter.x - -1.8) < 0.2 &&
-            Math.abs(doorCenter.z - 7.5) < 0.5
-          ) {
-            const door = workshopDoorRef.current;
-            if (!door.isOpen) {
-              return {
-                isClosed: door.animProgress < 0.85,
-                openDoor: () => {
-                  if (door.isLocked) door.setLocked(false);
-                  door.open(dadCharacterRef.current!.group.position);
-                },
-              };
-            }
-          }
           return null;
         };
       }
@@ -3001,7 +2927,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
             currentRoom,
             playerPos.current,
             bedroomDoorRef.current,
-            workshopDoorRef.current,
             basementDoorRef.current,
             restroomDoorRef.current
           );
@@ -3071,7 +2996,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
           // Update door pivot animations
           if (bedroomDoorRef.current) bedroomDoorRef.current.update(delta);
-          if (workshopDoorRef.current) workshopDoorRef.current.update(delta);
           if (basementDoorRef.current) basementDoorRef.current.update(delta);
           if (restroomDoorRef.current) restroomDoorRef.current.update(delta);
 
@@ -3134,7 +3058,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
             houseSceneRef.current.setLightProgress(neonT);
           }
           if (bedroomDoorRef.current) bedroomDoorRef.current.setCyberProgress(neonT);
-          if (workshopDoorRef.current) workshopDoorRef.current.setCyberProgress(neonT);
           if (basementDoorRef.current) basementDoorRef.current.setCyberProgress(neonT);
           if (restroomDoorRef.current) restroomDoorRef.current.setCyberProgress(neonT);
 
@@ -3339,7 +3262,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
           if (worldModeRef.current === 'real') {
             const pPos = playerPos.current;
             const bd = bedroomDoorRef.current;
-            const wd = workshopDoorRef.current;
             const rd = restroomDoorRef.current;
             const bsd = basementDoorRef.current;
 
@@ -3353,7 +3275,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
               // 2. Hide doors and props of the rooms above
               if (bd) { bd.pivotGroup.visible = false; bd.frameGroup.visible = false; }
-              if (wd) { wd.pivotGroup.visible = false; wd.frameGroup.visible = false; }
               if (rd) { rd.pivotGroup.visible = false; rd.frameGroup.visible = false; }
 
               // Keep basement door frame/pivot visible at the top stairwell mouth
@@ -3371,12 +3292,10 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
             } else {
               // Player is back upstairs: restore upstairs doors
               if (bd) { bd.pivotGroup.visible = true; bd.frameGroup.visible = true; }
-              if (wd) { wd.pivotGroup.visible = true; wd.frameGroup.visible = true; }
               if (rd) { rd.pivotGroup.visible = true; rd.frameGroup.visible = true; }
               if (bsd) { bsd.pivotGroup.visible = true; bsd.frameGroup.visible = true; }
 
               const isBdActive = Boolean(bd && (bd.isOpen || bd.animProgress > 0) && pPos.distanceTo(bd.position) < 6.0);
-              const isWdActive = Boolean(wd && (wd.isOpen || wd.animProgress > 0) && pPos.distanceTo(wd.position) < 6.0);
               const isRdActive = Boolean(rd && (rd.isOpen || rd.animProgress > 0) && pPos.distanceTo(rd.position) < 6.0);
               const isBsdActive = Boolean(bsd && (bsd.isOpen || bsd.animProgress > 0) && pPos.distanceTo(bsd.position) < 6.0);
 
@@ -3385,13 +3304,13 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
                 currentRoom === 'hallway' ||
                 currentRoom === 'living_room' ||
                 currentRoom === 'kitchen' ||
+                currentRoom === 'workshop' ||
                 isBdActive ||
-                isWdActive ||
                 isBsdActive ||
                 isRdActive
               );
               if (workshopSceneRef.current) {
-                workshopSceneRef.current.group.visible = currentRoom === 'workshop' || isWdActive;
+                workshopSceneRef.current.group.visible = currentRoom === 'workshop' || (currentRoom === 'hallway' && pPos.z >= 1.5 && pPos.z <= 4.8);
               }
               if (restroomSceneRef.current) {
                 restroomSceneRef.current.group.visible = currentRoom === 'restroom' || isRdActive;
@@ -3429,7 +3348,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
                     dad.group.visible = true;
                   } else if (dadRegion === 'kitchen' && (currentRoom === 'hallway' || currentRoom === 'living_room')) {
                     dad.group.visible = true;
-                  } else if (dadRegion === 'workshop' && (wd?.isOpen || (wd?.animProgress || 0) > 0)) {
+                  } else if (dadRegion === 'workshop') {
                     dad.group.visible = true;
                   } else if (dadRegion === 'bedroom' && (bd?.isOpen || (bd?.animProgress || 0) > 0)) {
                     dad.group.visible = true;
@@ -3690,14 +3609,14 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
                   currentRoom === 'hallway' ||
                   currentRoom === 'living_room' ||
                   currentRoom === 'kitchen' ||
+                  currentRoom === 'workshop' ||
                   bedroomDoorRef.current?.isOpen ||
-                  workshopDoorRef.current?.isOpen ||
                   basementDoorRef.current?.isOpen ||
                   restroomDoorRef.current?.isOpen
                 ) {
                   activeColliders.push(...houseMap.colliders);
                 }
-                if (workshopSceneRef.current && (currentRoom === 'workshop' || workshopDoorRef.current?.isOpen)) {
+                if (workshopSceneRef.current && (currentRoom === 'workshop' || currentRoom === 'hallway')) {
                   activeColliders.push(...workshopSceneRef.current.colliders);
                 }
                 if (restroomSceneRef.current && (currentRoom === 'restroom' || restroomDoorRef.current?.isOpen)) {
@@ -3708,7 +3627,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
                 }
 
                 // Closed door solid colliders
-                for (const door of [bedroomDoorRef.current, workshopDoorRef.current, basementDoorRef.current, restroomDoorRef.current]) {
+                for (const door of [bedroomDoorRef.current, basementDoorRef.current, restroomDoorRef.current]) {
                   if (door) {
                     const col = door.getCollider();
                     if (col) activeColliders.push(col);
@@ -3807,7 +3726,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
             currentRoom,
             playerPos.current,
             bedroomDoorRef.current,
-            workshopDoorRef.current,
             basementDoorRef.current,
             restroomDoorRef.current
           );
@@ -3905,7 +3823,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
           if (houseMap.group.visible) {
             activeNodes.push(
               ...houseMap.interactionNodes.filter((n) => {
-                if (n.id === 'house_workshop' || n.id === 'house_basement' || n.id === 'house_restroom' || n.id === 'house_return_bedroom') return false;
+                if (n.id === 'house_basement' || n.id === 'house_restroom' || n.id === 'house_return_bedroom') return false;
                 if (n.id === 'kitchen_drawer' && storyStateRef.current.quests.kitchen_key !== 'active') return false;
                 return true;
               })
@@ -3913,9 +3831,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
           }
           if (bedroomDoorRef.current && (bedroom.group.visible || houseMap.group.visible)) {
             activeNodes.push(bedroomDoorRef.current.interactionNode);
-          }
-          if (workshopDoorRef.current && (houseMap.group.visible || workshopSceneRef.current?.group.visible)) {
-            activeNodes.push(workshopDoorRef.current.interactionNode);
           }
           if (workshopSceneRef.current && (houseMap.group.visible || workshopSceneRef.current.group.visible)) {
             activeNodes.push(...workshopSceneRef.current.interactionNodes);
@@ -4419,7 +4334,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
         }
         if (isBeerCutsceneActiveRef.current) {
           if (isDevEnabled) {
-            handleSkipBeerCutscene();
+
           }
         } else if (isDevMenuOpen) {
           setIsDevMenuOpen(false);
@@ -4630,7 +4545,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       if (houseSceneRef.current.group.visible) {
         activeNodes.push(
           ...houseSceneRef.current.interactionNodes.filter((n) => {
-            if (n.id === 'house_workshop' || n.id === 'house_basement' || n.id === 'house_restroom' || n.id === 'house_return_bedroom') return false;
+            if (n.id === 'house_basement' || n.id === 'house_restroom' || n.id === 'house_return_bedroom') return false;
             if (n.id === 'kitchen_drawer' && storyStateRef.current.quests.kitchen_key !== 'active') return false;
             return true;
           })
@@ -4638,9 +4553,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       }
       if (bedroomDoorRef.current && (bedroomSceneRef.current.group.visible || houseSceneRef.current.group.visible)) {
         activeNodes.push(bedroomDoorRef.current.interactionNode);
-      }
-      if (workshopDoorRef.current && (houseSceneRef.current.group.visible || workshopSceneRef.current?.group.visible)) {
-        activeNodes.push(workshopDoorRef.current.interactionNode);
       }
       if (workshopSceneRef.current && (houseSceneRef.current.group.visible || workshopSceneRef.current.group.visible)) {
         activeNodes.push(...workshopSceneRef.current.interactionNodes);
@@ -4729,7 +4641,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
     // Check if node corresponds to any HouseDoor instance
     const doors = [
       bedroomDoorRef.current,
-      workshopDoorRef.current,
       basementDoorRef.current,
       restroomDoorRef.current,
     ].filter(Boolean) as InteractiveDoor[];
@@ -4739,23 +4650,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
     if (matchedDoor) {
       if (matchedDoor.isLocked) {
         soundEngine.playRadioStatic();
-        if (matchedDoor.id === 'house_workshop') {
-          if (storyStateRef.current.hasWrench) {
-            matchedDoor.setLocked(false);
-            matchedDoor.open();
-          } else {
-            onSubtitleChangeRef.current?.(
-              'Dad (Through Door)',
-              '“Zane! Careful around the hallway, I’m oiling the door hinges in the workshop!”'
-            );
-            soundEngine.speakLine(
-              'Zane! Careful around the hallway, I am oiling the door hinges in the workshop!',
-              'dad'
-            );
-            onTelltaleNotificationRef.current?.('Locked: Dad is in the Workshop');
-            soundEngine.playTelltaleBell();
-          }
-        } else if (matchedDoor.id === 'house_basement') {
+        if (matchedDoor.id === 'house_basement') {
           onSubtitleChangeRef.current?.(
             'Zane',
             '“Locked. The key has to be somewhere in the house.”'
@@ -4916,13 +4811,6 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
       basementSceneRef.current?.hideWrench();
 
-      if (workshopDoorRef.current) {
-        workshopDoorRef.current.setLocked(false);
-        workshopDoorRef.current.interactionNode.promptVerb = 'Open';
-        workshopDoorRef.current.interactionNode.name = "Dad's Workshop";
-        workshopDoorRef.current.interactionNode.description = "Press E to open Dad's Workshop door.";
-      }
-
       soundEngine.playItemPickup();
       onSubtitleChangeRef.current?.(
         'Zane',
@@ -5051,15 +4939,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
         registerMarkerRef={registerMarkerRef}
       />
 
-      {/* Skip Cutscene Button (Only allowed when ?dev=1 is present) */}
-      {isBeerCutsceneActive && isDevEnabled && (
-        <button
-          onClick={handleSkipBeerCutscene}
-          className="fixed top-6 right-6 z-[110] px-4 py-2 bg-neutral-900/90 hover:bg-neutral-800 text-yellow-300 border border-yellow-500/40 rounded-xl font-mono text-xs font-bold shadow-xl transition-all cursor-pointer active:scale-95"
-        >
-          [DEV] Skip Cutscene ⏭
-        </button>
-      )}
+
 
       {/* Soft Blur Vignette Overlay (real world only) */}
       {softBlurVignette && worldModeRef.current !== 'imagination' && (

@@ -9,7 +9,6 @@ interface TelltaleUIProps {
   controlsUnlocked: boolean;
   isCinematic: boolean;
   currentLocation: SceneLocation;
-  onSkipCinematic: () => void;
   onExecuteInteraction: () => void;
   onDialogueChoice: (choiceText: string, outcome: string, telltaleText: string) => void;
   onDialogueChoiceStateChange?: (active: boolean) => void;
@@ -115,7 +114,6 @@ export const TelltaleUI: React.FC<TelltaleUIProps> = ({
   notifications,
   isCinematic,
   currentLocation,
-  onSkipCinematic,
   onDialogueChoice,
   onDialogueChoiceStateChange,
   customChoices,
@@ -226,16 +224,6 @@ export const TelltaleUI: React.FC<TelltaleUIProps> = ({
       {/* --- TOP CINEMATIC LETTERBOX (Cinematics Only) --- */}
       {isCinematic ? (
         <div className="w-full bg-black h-16 transition-all duration-500 ease-out flex items-center justify-end px-8">
-          <button
-            onClick={onSkipCinematic}
-            className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-neutral-200 rounded text-xs font-crayon font-bold tracking-wider transition-all cursor-pointer"
-            style={{
-              textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-            }}
-          >
-            <SkipForward className="w-3 h-3" />
-            <span>Skip</span>
-          </button>
         </div>
       ) : (
         <div className="h-0" />

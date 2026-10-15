@@ -22,7 +22,7 @@ export interface DeveloperMenuProps {
   onToggleInventory: (item: 'key' | 'flashlight' | 'wrench' | 'power' | 'photoChoice') => void;
   onForceImagination: (active: boolean) => void;
   onResetImagination: () => void;
-  onTriggerCutscene: (type: 'intro' | 'hallway' | 'skip_intro') => void;
+  onTriggerCutscene: (type: 'intro' | 'hallway') => void;
   onTriggerQuietHands?: () => void;
   onResetEverything: () => void;
   onSaveSnapshot: () => void;
@@ -428,13 +428,7 @@ export const DeveloperMenu: React.FC<DeveloperMenuProps> = ({
                   <div className="text-[11px] text-neutral-400">Battlefield camera & narration</div>
                 </button>
 
-                <button
-                  onClick={() => onTriggerCutscene('skip_intro')}
-                  className="p-3 rounded-lg bg-neutral-800/60 hover:bg-neutral-800 border border-neutral-700 text-left transition"
-                >
-                  <div className="font-semibold text-sm text-neutral-200">Skip Intro Directly</div>
-                  <div className="text-[11px] text-neutral-400">Spawn straight in bedroom</div>
-                </button>
+
 
                 <button
                   onClick={() => {

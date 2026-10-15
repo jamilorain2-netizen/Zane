@@ -47,9 +47,6 @@ export default function App() {
 
   const handleStartGame = useCallback((skipIntro: boolean) => {
     setIsGameStarted(true);
-    if (skipIntro) {
-      handleSkipCinematic();
-    }
   }, []);
 
   // Push notification with auto-dismiss (kept for internal logic)
@@ -79,30 +76,6 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [subtitle.text]);
 
-  // Skip dialogue early with Space, Enter, or click
-  useEffect(() => {
-    if (!subtitle.text) return;
-    const handleSkip = (e: KeyboardEvent | MouseEvent) => {
-      if ('code' in e) {
-        if (e.code === 'Space' || e.code === 'Enter') {
-          setSubtitle({ speaker: '', text: '' });
-          setControlsUnlocked(true);
-          setIsCinematic(false);
-        }
-      } else {
-        setSubtitle({ speaker: '', text: '' });
-        setControlsUnlocked(true);
-        setIsCinematic(false);
-      }
-    };
-    window.addEventListener('keydown', handleSkip);
-    window.addEventListener('click', handleSkip);
-    return () => {
-      window.removeEventListener('keydown', handleSkip);
-      window.removeEventListener('click', handleSkip);
-    };
-  }, [subtitle.text]);
-
   // Escape key toggles Pause or closes inspect modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -129,16 +102,7 @@ export default function App() {
     setControlsUnlocked(true);
   }, []);
 
-  const handleSkipCinematic = useCallback(() => {
-    setIsCinematic(false);
-    setControlsUnlocked(true);
-    setSubtitle({ speaker: '', text: '' });
-    setCompletedCutscenes((prev) => ({
-      ...prev,
-      intro_prologue: true,
-      drawings_imagination: true,
-    }));
-  }, []);
+
 
   // Handle interaction click or [E] press
   const handleExecuteInteraction = useCallback(() => {
@@ -242,7 +206,6 @@ export default function App() {
               activeInspectModal={inspectModal}
               onCloseInspect={() => setInspectModal(null)}
               isCinematicPlaying={isCinematic}
-              onSkipCinematic={handleSkipCinematic}
               isDialogueActive={Boolean(subtitle.text)}
               isChoiceActive={isChoiceActive}
               completedCutscenes={completedCutscenes}
@@ -260,7 +223,6 @@ export default function App() {
               controlsUnlocked={controlsUnlocked}
               isCinematic={isCinematic}
               currentLocation={currentLocation}
-              onSkipCinematic={handleSkipCinematic}
               onExecuteInteraction={handleExecuteInteraction}
               onDialogueChoice={handleDialogueChoice}
               onDialogueChoiceStateChange={setIsChoiceActive}

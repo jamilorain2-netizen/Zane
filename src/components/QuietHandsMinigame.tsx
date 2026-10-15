@@ -673,21 +673,7 @@ export const QuietHandsMinigame: React.FC<QuietHandsMinigameProps> = ({
     isDraggingRef.current = false;
   };
 
-  const handleSkipMinigame = () => {
-    isGameOverRef.current = true;
-    isDraggingRef.current = false;
-    currentMazeData = null;
-    savedKeyPosition = null;
 
-    soundEngine.playItemPickup();
-    onSubtitleChange('Zane', '“Got it.”');
-    soundEngine.speakLine('Got it.', 'zane');
-    onTelltaleNotification?.('Basement Key Retrieved (Skipped)');
-
-    window.setTimeout(() => {
-      onWin();
-    }, 400);
-  };
 
   // ESC key handler
   useEffect(() => {
@@ -1206,15 +1192,7 @@ export const QuietHandsMinigame: React.FC<QuietHandsMinigameProps> = ({
 
           {/* Right: ESC // RETURN Button & Optional Skip Button after 6 resets */}
           <div className="flex items-center gap-3 z-50">
-            {attempts >= 6 && (
-              <button
-                onClick={handleSkipMinigame}
-                className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-amber-600 hover:bg-amber-500 text-neutral-950 border border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.5)] active:scale-95 transition-all cursor-pointer font-mono"
-                style={{ fontFamily: 'cursive, sans-serif' }}
-              >
-                ✏️ Skip Maze
-              </button>
-            )}
+
 
             <button
               onClick={onClose}

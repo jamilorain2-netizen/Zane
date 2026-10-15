@@ -205,28 +205,7 @@ export class HouseWorld {
     this.doors['bedroom_door'] = bedroomDoor;
     this.group.add(bedroomDoor.group);
 
-    // B. Workshop Door (Dad's craft workshop, on left hallway wall at X = -1.8, Z = 3.5)
-    const workshopDoor = new HouseDoor({
-      id: 'workshop_door',
-      name: "Dad's Workshop",
-      roomA: 'hallway',
-      roomB: 'workshop',
-      position: new THREE.Vector3(-1.8, 0, 3.5),
-      width: 1.3,
-      height: 2.6,
-      facingAxis: 'x',
-      hingeSide: 'min', // hinge at Z = 2.85
-      swingSign: -1, // swings into workshop (X < -1.8)
-      isLocked: true, // locked initially while Dad is inside
-      lockedSpeaker: 'Dad (Through Door)',
-      lockedText: '“Zane! Careful around the hallway, I’m oiling the door hinges in the workshop!”',
-      lockedVoice: 'dad',
-      doorColor: 0xa16207,
-      hasWindow: true,
-      windowColor: 0xfef08a,
-    });
-    this.doors['workshop_door'] = workshopDoor;
-    this.group.add(workshopDoor.group);
+    // B. Workshop door removed (open archway entrance)
 
     // C. Basement Door (on right hallway wall at X = 1.8, Z = 3.5)
     const basementDoor = new HouseDoor({
@@ -1701,13 +1680,13 @@ export class HouseWorld {
       }
     }
 
-    // C. Hallway <-> Workshop (Door at X = -1.8, Z = 3.5)
-    if (this.doors['workshop_door']?.isOpen) {
-      if (Math.abs(playerPos.x - (-1.8)) < 2.8 && playerPos.z >= 1.5 && playerPos.z <= 4.8) {
+    // C. Hallway <-> Workshop (open archway)
+    if (playerPos.z >= 1.5 && playerPos.z <= 4.8) {
+      if (playerPos.x < 1.2) {
         minX = -5.4;
-        maxX = 1.2;
-        minZ = 1.0;
-        maxZ = 4.5;
+        maxX = Math.max(maxX, 1.2);
+        minZ = Math.min(minZ, 1.0);
+        maxZ = Math.max(maxZ, 4.5);
       }
     }
 

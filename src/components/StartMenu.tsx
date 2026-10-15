@@ -11,7 +11,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({ onStartGame }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [showWarning, setShowWarning] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [skipIntroChecked, setSkipIntroChecked] = useState<boolean>(false);
+
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
   const [isHoverNewGame, setIsHoverNewGame] = useState<boolean>(false);
   const [isHoverSettings, setIsHoverSettings] = useState<boolean>(false);
@@ -277,7 +277,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({ onStartGame }) => {
     soundEngine.playItemPickup();
     setIsFadingOut(true);
     setTimeout(() => {
-      onStartGame(skipIntroChecked);
+      onStartGame(false);
     }, 600);
   };
 
@@ -326,7 +326,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({ onStartGame }) => {
       <div className="relative z-10 flex flex-col items-center max-w-2xl px-6 py-12 text-center">
         {/* Title */}
         <div className="mb-8 transform -rotate-1">
-          <h1 className="text-5xl sm:text-7xl font-bold tracking-wider drop-shadow-md flex items-center justify-center gap-1.5 flex-wrap" style={{ fontFamily: "'Gaegu', cursive, sans-serif" }}>
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-wider drop-shadow-md flex items-center justify-center gap-1.5" style={{ fontFamily: "'Gaegu', cursive, sans-serif" }}>
             <span className="text-red-600 transform inline-block rotate-[-3deg]">Z</span>
             <span className="text-blue-600 transform inline-block rotate-[2deg]">a</span>
             <span className="text-amber-500 transform inline-block rotate-[-2deg]">n</span>
@@ -403,14 +403,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({ onStartGame }) => {
               "This game is a short game, so it does not support a save game system."
             </p>
 
-            {isDev && (
-              <div className="flex items-center justify-center gap-2 mb-5 cursor-pointer" onClick={() => setSkipIntroChecked(!skipIntroChecked)}>
-                <div className={`w-5 h-5 border-2 border-stone-800 flex items-center justify-center bg-white rounded ${skipIntroChecked ? 'bg-amber-300' : ''}`}>
-                  {skipIntroChecked && <span className="text-stone-900 font-bold text-sm">✓</span>}
-                </div>
-                <span className="text-sm font-mono text-stone-800 font-bold">Skip intro cutscene</span>
-              </div>
-            )}
+
 
             <div className="flex items-center justify-center gap-4">
               <button
