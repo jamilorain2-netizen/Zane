@@ -1,0 +1,6 @@
+{
+  "name": "Cosmic Hunter - Retro Cyberpunk Telltale Narrative Engine",
+  "description": "3D third-person cyberpunk retro-futuristic narrative adventure following 11-year-old Zane across his imaginative cosmic battleground and rustic desert home.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
