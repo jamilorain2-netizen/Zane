@@ -323,10 +323,10 @@ export const StartMenu: React.FC<StartMenuProps> = ({ onStartGame }) => {
         className="absolute inset-0 w-full h-full pointer-events-none"
       />
 
-      <div className="relative z-10 flex flex-col items-center max-w-2xl px-6 py-12 text-center">
+      <div className="relative z-10 flex flex-col items-center w-[85vw] max-w-2xl px-2 py-6 sm:px-6 sm:py-12 text-center">
         {/* Title */}
         <div className="mb-8 transform -rotate-1">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-wider drop-shadow-md flex items-center justify-center gap-1.5" style={{ fontFamily: "'Gaegu', cursive, sans-serif" }}>
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold tracking-wider drop-shadow-md flex items-center justify-center gap-1.5" style={{ fontFamily: "'Gaegu', cursive, sans-serif" }}>
             <span className="text-red-600 transform inline-block rotate-[-3deg]">Z</span>
             <span className="text-blue-600 transform inline-block rotate-[2deg]">a</span>
             <span className="text-amber-500 transform inline-block rotate-[-2deg]">n</span>

@@ -56,3 +56,10 @@ export interface StoryState {
   photoChoice?: 'taken' | 'left';
   beerReply?: 'Not beer again, Dad' | '...' | string;
 }
+
+export interface MobileInputState {
+  movement: { x: number; y: number }; // -1 to 1 for joystick
+  look: { x: number; y: number }; // delta for look
+  jump: boolean;
+  interact: boolean;
+}

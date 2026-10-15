@@ -11,7 +11,7 @@ import { BattlefieldScene } from './BattlefieldScene';
 import { InteractiveDoor } from './InteractiveDoor';
 import { CinematicController } from './CinematicController';
 import { soundEngine } from '../audio/soundEngine';
-import { InteractionNode, SceneLocation, StoryState, QuestId, QuestStatus } from '../types/game';
+import { InteractionNode, SceneLocation, StoryState, QuestId, QuestStatus, MobileInputState } from '../types/game';
 import { createToonMaterial } from '../utils/toonShader';
 import { GraphicNovelPaperOverlay } from './GraphicNovelPaperOverlay';
 import {
@@ -51,6 +51,7 @@ interface ThreeCanvasProps {
   activeInspectModal: string | null;
   onCloseInspect: () => void;
   isCinematicPlaying: boolean;
+  mobileInput?: MobileInputState;
 
   isDialogueActive?: boolean;
   isChoiceActive?: boolean;
@@ -197,6 +198,7 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
   onStoryStateChange,
   onTriggerBeerRequest,
   onReturnToMenu,
+  mobileInput,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -208,6 +210,11 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
       document.exitPointerLock?.();
     }
   }, [isPaused]);
+
+  const mobileInputRef = useRef(mobileInput);
+  useEffect(() => {
+    mobileInputRef.current = mobileInput;
+  }, [mobileInput]);
 
   // Mouse look modes & pointer lock state
   const [lookMode, setLookMode] = useState<'locked' | 'drag'>('locked');
@@ -2538,6 +2545,21 @@ export const ThreeCanvas: React.FC<ThreeCanvasProps> = ({
 
       const delta = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
+
+      if (mobileInputRef.current) {
+        const m = mobileInputRef.current;
+        keysPressed.current['KeyW'] = m.movement.y > 0.5;
+        keysPressed.current['KeyS'] = m.movement.y < -0.5;
+        keysPressed.current['KeyA'] = m.movement.x < -0.5;
+        keysPressed.current['KeyD'] = m.movement.x > 0.5;
+        keysPressed.current['Space'] = m.jump;
+        keysPressed.current['KeyE'] = m.interact;
+        // Adjust sensitivity: mx * sensitivity (e.g. 0.0022 in mouse move)
+        // Currently 0.01. Let's make it more sensitive/responsive to touch.
+        cameraYaw.current -= m.look.x * 0.05;
+        cameraPitch.current -= m.look.y * 0.05;
+        cameraPitch.current = Math.max(-20 * (Math.PI / 180), Math.min(50 * (Math.PI / 180), cameraPitch.current));
+      }
 
       // Dynamic FOV widen on imagination entry (+6 degrees, easing back over ~1 second)
       const baseFov = 55;

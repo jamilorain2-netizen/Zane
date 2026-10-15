@@ -8,11 +8,15 @@ import { ThreeCanvas } from './components/ThreeCanvas';
 import { TelltaleUI } from './components/TelltaleUI';
 import { InspectOverlay } from './components/InspectOverlay';
 import { StartMenu } from './components/StartMenu';
-import { InteractionNode, SceneLocation, GameNotification } from './types/game';
+import { InteractionNode, SceneLocation, GameNotification, MobileInputState } from './types/game';
 import { soundEngine } from './audio/soundEngine';
 import { Volume2, VolumeX } from 'lucide-react';
+import { MobileControls } from './components/MobileControls';
 
 export default function App() {
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
   const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
   const [currentLocation, setCurrentLocation] = useState<SceneLocation>('bedroom');
   const [activeNode, setActiveNode] = useState<InteractionNode | null>(null);
@@ -23,6 +27,13 @@ export default function App() {
   const [notifications, setNotifications] = useState<GameNotification[]>([]);
   const [controlsUnlocked, setControlsUnlocked] = useState(false);
   const [isCinematic, setIsCinematic] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileInput, setMobileInput] = useState<MobileInputState>({
+    movement: { x: 0, y: 0 },
+    look: { x: 0, y: 0 },
+    jump: false,
+    interact: false,
+  });
   const [inspectModal, setInspectModal] = useState<'drawings' | 'window' | 'holo_tv' | null>(null);
   const [isChoiceActive, setIsChoiceActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -206,6 +217,7 @@ export default function App() {
               activeInspectModal={inspectModal}
               onCloseInspect={() => setInspectModal(null)}
               isCinematicPlaying={isCinematic}
+              mobileInput={isMobile ? mobileInput : undefined}
               isDialogueActive={Boolean(subtitle.text)}
               isChoiceActive={isChoiceActive}
               completedCutscenes={completedCutscenes}
@@ -214,6 +226,7 @@ export default function App() {
               onTriggerBeerRequest={handleTriggerBeerRequest}
               onReturnToMenu={handleReturnToMenu}
             />
+            {isMobile && <MobileControls onInput={setMobileInput} isInteractable={!!activeNode} />}
 
             {/* Letterboxed dialogue subtitles, small dot crosshair, and timed choice box */}
             <TelltaleUI
